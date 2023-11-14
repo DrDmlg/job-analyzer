@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vacancy Analyzer</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 36px;
+        }
+
+        p {
+            font-size: 18px;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        input {
+            padding: 8px;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<h1>Vacancy Analyzer</h1>
+<h1>Hi there. I'm still young and just learning, but you can enter the link in the form below and see the magic!</h1>
+    <form id="analyzeForm" method="post" action="/api/vacancies/analyze">
+        <label for="vacancyUrl">Vacancy URL:</label>
+        <input type="text" id="vacancyUrl" name="vacancyUrl" required>
+        <button type="submit">Analyze</button>
+    </form>
+</body>
+</html>

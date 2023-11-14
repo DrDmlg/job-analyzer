@@ -1,4 +1,4 @@
-package com.example.analyzer;
+package com.example.analyzer.model;
 
 import jakarta.persistence.*;
 import lombok.*;
