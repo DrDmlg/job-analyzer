@@ -6,7 +6,7 @@
     <title>Vacancy Analyzer</title>
     <style>
         body {
-            background-color: black;
+            background-color: #333;
             color: white;
             display: flex;
             flex-direction: column;
@@ -42,10 +42,17 @@
 <body>
 <h1>Vacancy Analyzer</h1>
 <h1>Hi there. I'm still young and just learning, but you can enter the link in the form below and see the magic!</h1>
-    <form id="analyzeForm" method="post" action="/api/vacancies/analyze">
-        <label for="vacancyUrl">Vacancy URL:</label>
-        <input type="text" id="vacancyUrl" name="vacancyUrl" required>
+
+    <form action="/api/vacancies/get-skills" method="post">
+        <label for="inputText">Vacancy URL:</label>
+        <input type="text" id="inputText" name="inputText" required>
         <button type="submit">Analyze</button>
     </form>
+
+<!--<form id="analyzeForm" method="get" action="/api/vacancies">-->
+<!--    <label for="vacancyUrl">Vacancy URL:</label>-->
+<!--    <input type="text" id="vacancyUrl" name="vacancyUrl" required>-->
+<!--    <button type="submit">Analyze</button>-->
+<!--</form>-->
 </body>
 </html>
