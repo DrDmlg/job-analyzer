@@ -3,19 +3,17 @@ package com.example.analyzer.controller;
 import com.example.analyzer.model.Vacancy;
 import com.example.analyzer.service.VacancyService;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.w3c.dom.ls.LSOutput;
 
 import java.util.List;
 
-
-@RestController
+@Slf4j
+@Controller
 @RequestMapping("/api/vacancies")
 public class VacancyController {
 
@@ -26,23 +24,30 @@ public class VacancyController {
         this.vacancyService = vacancyService;
     }
 
-    @GetMapping
+    @GetMapping("/get-all")
     public ResponseEntity<List<Vacancy>> getAllVacancies() {
         List<Vacancy> vacancies = vacancyService.getAllVacancies();
         return new ResponseEntity<>(vacancies, HttpStatus.OK);
     }
 
-    @PostMapping
+    @PostMapping("/create-vacancy")
     public ResponseEntity<Vacancy> createVacancy(@RequestBody Vacancy vacancy) {
         vacancyService.createVacancy(vacancy);
         return new ResponseEntity<>(vacancy, HttpStatus.CREATED);
     }
 
-    @PostMapping("/analyze")
+    @GetMapping("/analyze")
     public ResponseEntity<List<String>> analyzeTechnologies(@RequestParam String vacancyUrl) {
-            //:TODO
+        //:TODO
         List<String> technologies = vacancyService.analyzeTechnologies(vacancyUrl);
         technologies.forEach(System.out::println);
         return new ResponseEntity<>(technologies, HttpStatus.OK);
+    }
+
+    @PostMapping("/get-skills")
+    public String getKeySkillsFromVacancy(@RequestParam String inputText, Model model) {
+        String vacancySkills = vacancyService.getKeySkillsFromVacancy(inputText);
+        model.addAttribute("outputText", "Found by me: " + vacancySkills);
+        return "result";
     }
 }
