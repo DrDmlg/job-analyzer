@@ -10,11 +10,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Controller
-@RequestMapping("/api/vacancies")
+@RequestMapping("/vacancy")
 public class VacancyController {
 
     private final VacancyService vacancyService;
@@ -24,30 +24,16 @@ public class VacancyController {
         this.vacancyService = vacancyService;
     }
 
-    @GetMapping("/get-all")
-    public ResponseEntity<List<Vacancy>> getAllVacancies() {
-        List<Vacancy> vacancies = vacancyService.getAllVacancies();
-        return new ResponseEntity<>(vacancies, HttpStatus.OK);
-    }
-
     @PostMapping("/create-vacancy")
     public ResponseEntity<Vacancy> createVacancy(@RequestBody Vacancy vacancy) {
         vacancyService.createVacancy(vacancy);
         return new ResponseEntity<>(vacancy, HttpStatus.CREATED);
     }
 
-    @GetMapping("/analyze")
-    public ResponseEntity<List<String>> analyzeTechnologies(@RequestParam String vacancyUrl) {
-        //:TODO
-        List<String> technologies = vacancyService.analyzeTechnologies(vacancyUrl);
-        technologies.forEach(System.out::println);
-        return new ResponseEntity<>(technologies, HttpStatus.OK);
-    }
-
-    @PostMapping("/get-skills")
-    public String getKeySkillsFromVacancy(@RequestParam String inputText, Model model) {
-        String vacancySkills = vacancyService.getKeySkillsFromVacancy(inputText);
-        model.addAttribute("outputText", "Found by me: " + vacancySkills);
-        return "result";
+    @GetMapping("/statistics")
+    public String getKeySkillsFromVacancy(@RequestParam String position, @RequestParam int depth, Model model) {
+        Map<String, Long> listWord = vacancyService.getKeySkillsFromVacancy(position, depth);
+        model.addAttribute("outputText", listWord);
+        return "statistics";
     }
 }

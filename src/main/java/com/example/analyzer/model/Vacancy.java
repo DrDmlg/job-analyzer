@@ -30,10 +30,13 @@ public class Vacancy {
     @Column(name = "companyName")
     String companyName;
 
+    @Column(name = "location")
     String location;
 
+    @Column(name = "salary")
     Integer salary;
 
+    @Column(name = "experience")
     String experience;
 
     @ElementCollection
