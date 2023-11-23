@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}">
+  <title>Vacancy Analyzer</title>
+</head>
+
+<header>
+  <div th:fragment="nav">
+    <nav>
+      <ul>
+        <li class="logo-container">
+          <img src="/logo.png" alt="Logo Vacancy Analyzer">
+        </li>
+        <li><a th:href="@{/statistics}">СТАТИСТИКА</a></li>
+        <li><a th:href="@{/resume-analysis}">АНАЛИЗ РЕЗЮМЕ</a></li>
+        <li class="right"><a href="#">Вход</a></li>
+        <li class="right"><a href="#">Регистрация</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+</html>

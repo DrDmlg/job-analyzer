@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vacancy Analyzer</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}">
+</head>
+
+<header>
+    <div th:replace="~{header.html :: nav}"></div>
+</header>
+
+<body>
+    <main class="statistics">
+        <form th:action="@{/vacancy/statistics}" method="get">
+            <label for="position">Интересующая должность:</label>
+            <input type="text" id="position" name="position" required>
+
+            <label for="depth">Глубина поиска (количество вакансий):</label>
+            <input type="number" id="depth" name="depth" min="1" required>
+
+            <button type="submit">Поиск</button>
+        </form>
+    </main>
+
+    <main class="search-results">
+        <div th:if="${outputText != null}" style="border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+            <table style="width: 100%; border-collapse: collapse;">
+
+                <tr style="border-bottom: 2px solid #333; font-weight: bold;">
+                    <td>Навык</td>
+                    <td>Количество запросов</td>
+                </tr>
+
+                <tr th:each="entry : ${outputText.entrySet()}" style="border-bottom: 1px solid #ddd;">
+                    <td th:text="${entry.key}" style="padding: 8px;"></td>
+                    <td th:text="${entry.value}" style="padding: 8px;"></td>
+                </tr>
+            </table>
+        </div>
+    </main>
+
+    <footer>
+        <div th:replace="~{footer.html :: copy}"></div>
+    </footer>
+</body>
+</html>
