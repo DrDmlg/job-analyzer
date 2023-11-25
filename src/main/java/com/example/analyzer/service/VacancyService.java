@@ -2,6 +2,7 @@ package com.example.analyzer.service;
 
 import com.example.analyzer.model.Vacancy;
 import com.example.analyzer.repository.VacancyRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ public class VacancyService {
 
     private final VacancyRepository vacancyRepository;
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     public VacancyService(VacancyRepository vacancyRepository, RestTemplate restTemplate) {
@@ -32,60 +34,93 @@ public class VacancyService {
     }
 
     public Map<String, Long> getKeySkillsFromVacancy(String position, int depth) {
-        Set<String> alternateUrls = new HashSet<>();
+        String apiUrl =  "https://api.hh.ru/vacancies";
 
-        String fullUrl = "https://api.hh.ru/vacancies" + "?" + String.format("text=%s&per_page=%d",
+        String fullUrl = buildFullUrlUsingParameters(apiUrl, position, depth);
+        String jsonData = requestDataFromApi(fullUrl, String.class);
+        JsonNode jsonTree = getJsonTree(jsonData);
+        JsonNode jsonItemsNodeArray = getArrayNodeItemsFromTree(jsonTree, "items");
+
+        String alternateUrl = getSpecificNode(jsonItemsNodeArray, "alternate_url");
+        Set<String> vacancyId = extractVacancyId(alternateUrl);
+
+        List<String> specificVacancyUrl = buildFullUrlSpecificVacancy("https://api.hh.ru/vacancies/", vacancyId);
+        List<String> strings = requestDataSpecificVacancy(specificVacancyUrl);
+
+        String specificNode = getSpecificNode(strings, "key_skills");
+
+        return sortAndConvertToMap(specificNode);
+    }
+
+    private String buildFullUrlUsingParameters(String apiUrl, String position, int depth) {
+        return apiUrl + "?" + String.format("text=%s&per_page=%d",
                 position.replaceAll(" ", "+"),
                 depth);
+    }
 
+    private <T> T requestDataFromApi(String url, Class<T> responseType) {
+        return restTemplate.getForObject(url, responseType);
+    }
+
+    private JsonNode getJsonTree(String content) {
         try {
-            String jsonString = restTemplate.getForObject(fullUrl, String.class);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            JsonNode jsonNode = objectMapper.readTree(jsonString);
-
-            JsonNode itemsNode = jsonNode.get("items");
-
-            for (JsonNode item : itemsNode) {
-                JsonNode alternateUrl = item.get("alternate_url");
-                if (alternateUrl != null) {
-                    String text = alternateUrl.asText();
-                    String substring = text.substring(text.lastIndexOf("/") + 1).trim();
-                    alternateUrls.add(substring);
-                }
-            }
-
-            String apiUrl = "https://api.hh.ru/vacancies/";
-
-            JsonNode keySkillsNode = null;
-
-            StringJoiner stringJoiner = new StringJoiner(", ");
-            for (String t : alternateUrls) {
-                String s = apiUrl + t;
-                String forObject = restTemplate.getForObject(s, String.class);
-                JsonNode jsonNode1 = objectMapper.readTree(forObject);
-                keySkillsNode = jsonNode1.get("key_skills");
-                for (JsonNode key : keySkillsNode) {
-                    stringJoiner.add(key.get("name").asText());
-                }
-            }
-
-            String stringMap = stringJoiner.toString();
-
-            return Stream.of(stringMap.split(", "))
-                    .collect(Collectors.groupingBy(String::valueOf, Collectors.counting()))
-                    .entrySet().stream()
-                    .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                            (e1, e2) -> e1, LinkedHashMap::new));
-
-        } catch (Exception e) {
-            log.debug("Error");
+            return objectMapper.readTree(content);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error parsing JSON", e);
         }
+    }
 
-        return null;
+    private JsonNode getArrayNodeItemsFromTree(JsonNode jsonTree, String fieldName) {
+        return jsonTree.get(fieldName);
+    }
+
+    private String getSpecificNode(JsonNode jsonArray, String specificNode) {
+        StringJoiner joiner = new StringJoiner(", ");
+        for (JsonNode item : jsonArray) {
+            JsonNode node = item.get(specificNode);
+            if (node != null) {
+                joiner.add(node.asText());
+            }
+        }
+        return joiner.toString().trim();
+    }
+
+    private Set<String> extractVacancyId(String urls) {
+        return Arrays.stream(urls.split(", "))
+                .map(url -> url.substring(url.lastIndexOf("/") + 1).trim())
+                .collect(Collectors.toSet());
+    }
+
+    private List<String> buildFullUrlSpecificVacancy(String url, Set<String> vacancyId) {
+        return vacancyId.stream()
+                .map(id -> url.concat(id))
+                .collect(Collectors.toList());
+    }
+
+    private List<String> requestDataSpecificVacancy(List<String> specificVacancyUrl) {
+        return specificVacancyUrl.stream()
+                .map(url -> requestDataFromApi(url, String.class))
+                .toList();
+    }
+
+    private String getSpecificNode(List<String> jsonArray, String specificNode) {
+        JsonNode jsonNodeName = null;
+        StringJoiner joiner = new StringJoiner(", ");
+        for (String item : jsonArray) {
+            jsonNodeName = getJsonTree(item).get(specificNode);
+            for (JsonNode key : jsonNodeName) {
+               joiner.add(key.get("name").asText());
+            }
+        }
+        return joiner.toString().trim();
+    }
+
+    private LinkedHashMap<String, Long> sortAndConvertToMap(String stringMap) {
+        return Stream.of(stringMap.split(", "))
+                .collect(Collectors.groupingBy(String::valueOf, Collectors.counting()))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (e1, e2) -> e1, LinkedHashMap::new));
     }
 }
-
-
